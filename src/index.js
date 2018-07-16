@@ -1,6 +1,14 @@
 import { app, BrowserWindow } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
+import bodyParser from 'body-parser';
+import { StackNavigator } from 'react-navigation';
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -59,3 +67,46 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+module.exports = (passport) => {
+
+  app.get('/register', (req, res) =>
+    this.props.navigation.navigate('Register'),
+  );
+
+  const validateReq = (user) =>
+    return (user.password === user.passwordRepeat);
+
+  app.post('/register', (req, res) => {
+    if (!validateReq(req.body)) {
+      this.props.navigation.navigate('Register')
+        alert("Passwords don't match")
+      );
+    }
+    const user = new User(req.body);
+
+    user.save((err, user) => {
+      if (err) {
+        console.log(err);
+        this.props.navigation.navigate('Register');
+        return;
+      }
+      console.log(user);
+      this.props.navigation.navigate('Login');
+    });
+  });
+
+  app.get('/login', (req, res) => {
+    this.props.navigation.navigate('Login');
+  });
+
+  app.post('/login',
+  passport.authenticate('local', {
+    successRedirect: '/',
+    failureFlash: true }),
+);
+
+  app.get('/logout', (req, res) => {
+    req.logout();
+    this.props.navigation.navigate('Login');
+  });
+};
