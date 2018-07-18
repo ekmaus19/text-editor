@@ -1,13 +1,11 @@
 import React from 'react';
-import Dashboard from './dashboard.js'
-import RichEditor from './textEditor.js'
-import { Button, Header, Image, Modal } from 'semantic-ui-react'
-
+import ReactDOM from 'react-dom';
+import Login from './comp/Login'
+import Registration from './comp/Registration'
 export default class App extends React.Component {
   render() {
-    return (
-    <div>
-      <RichEditor />
+    return (<div>
+      <Register />
     </div>);
   }
 }
