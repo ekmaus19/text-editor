@@ -17,6 +17,7 @@ class Dashboard extends React.Component {
 
       existingDocId: null,
       // set USER ID as props in login
+      user: null,
     }
   }
 
@@ -41,7 +42,7 @@ class Dashboard extends React.Component {
   createDoc() {
     const { newDocTitle, newPassword, newPasswordCheck } = this.state;
 
-    fetch('/doc/create', {
+    fetch('http://709b5487.ngrok.io/doc/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -49,7 +50,7 @@ class Dashboard extends React.Component {
       body: JSON.stringify({
         title: newDocTitle,
         password: newPassword,
-        passwordCheck: newPasswordCheck,
+        // passwordCheck: newPasswordCheck,
         owner: this.props.userid,
         lastEdit: new Date(),
       })
@@ -64,7 +65,7 @@ class Dashboard extends React.Component {
   }
 
   addDoc(id) {
-    fetch('/doc/' + id, {
+    fetch('http://709b5487.ngrok.io/doc/' + id, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

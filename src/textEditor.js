@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {Editor, EditorState, RichUtils, Modifier} from 'draft-js'
-import createInlineToolbarPlugin from 'draft-js-inline-toolbar-plugin'
 // import { Button } from 'react-bootstrap'
 import ColorPicker, {colorPickerPlugin} from 'draft-js-color-picker'
 import createStyles from 'draft-js-custom-styles'
@@ -11,20 +10,25 @@ const customStyleMap = {
     borderLeft: 'solid 3px red'
   }
 }
+
 const {styles, customStyleFn} = createStyles(["font-size"], customStyleMap)
+
 let alignmentBar = [
   {style:'align-left', label:'Left'},
   {style:'align-center', label:'Center'},
   {style:'align-right', label:'Right'},
 ]
+
 function isBlockStyle(style) {
-  if (style.indexOf('text-align-') === 0) return true
+  if (style.indexOf('align-') === 0) return true
   return false
 }
+
 function getBlockStyle(block) {
   const type = block.getType()
   return isBlockStyle(type) ? type : null
 }
+
 const presetColors = [
   '#ff00aa',
   '#F5A623',
@@ -90,12 +94,8 @@ class RichEditor extends React.Component {
       "UNDERLINE"
     ));
   }
-  setFontSize(fontSize) {
-    this.onChange(RichUtils.toggleInlineStyle(
-      this.state.editorState,
-      fontSize.toString()
-    ));
-  }
+
+  ////////////////////////////////////
   toggleBulletPoints() {
     this.onChange(RichUtils.toggleBlockType(
         this.state.editorState,
@@ -103,16 +103,7 @@ class RichEditor extends React.Component {
       )
     )
   }
-  // onToggleStyle = (style) => (e) => {
-  //   const toggleFn = isBlockStyle(style) ? RichUtils.toggleBlockType : RichUtils.toggleInlineStyle
-  //   this.onChange(toggleFn(this.state.editorState, style))
-  //   e.preventDefault()
-  // }
-  //
-  // onSetStyle = (name, val) => (e) => {
-  //   this.onChange(styles[name].toggle(this.state.editorState, val))
-  //   e.preventDefault()
-  // }
+
   toggleNumberedList() {
     this.onChange(RichUtils.toggleBlockType(
         this.state.editorState,
@@ -120,12 +111,22 @@ class RichEditor extends React.Component {
       )
     )
   }
+  //////////////////////////////////////
+  onToggleStyle(e, style) {
+    // e.preventDefault()
+    const toggleFn = isBlockStyle(style) ? RichUtils.toggleBlockType : RichUtils.toggleInlineStyle
+    this.onChange(toggleFn(this.state.editorState, style))
+  }
+
+  onSetStyle(e, name, val){
+    // e.preventDefault()
+    this.onChange(styles[name].toggle(this.state.editorState, val))
+  }
 
   toggleFont(e, blockType){
-    e.preventDefault();
+    // e.preventDefault();
     this.onChange(RichUtils.toggleBlockType(this.state.editorState, blockType))
   }
-  // {alignmentBar.map(({style, label}) => <button onClick={this.onToggleStyle(style)}>{label}</button>)}
 
   render() {
     const { editorState } = this.state;
@@ -166,9 +167,9 @@ class RichEditor extends React.Component {
 
               <a className='item'>
                 <Button.Group >
-                  <Button icon onClick={this._onRightAlignClick.bind(this)}><Icon className='align right'/></Button>
-                  <Button icon onClick={this._onCenterAlignClick.bind(this)}><Icon className='align center'/></Button>
-                  <Button icon onClick={this._onLeftAlignClick.bind(this)}><Icon className='align left'/></Button>
+                  <Button icon onClick={this.onToggleStyle("align-right")}><Icon className='align right'/></Button>
+                  <Button icon onClick={this.onToggleStyle("align-center")}><Icon className='align center'/></Button>
+                  <Button icon onClick={this.onToggleStyle("align-left")}><Icon className='align left'/></Button>
                 </Button.Group>
               </a>
 
