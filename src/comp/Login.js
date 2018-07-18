@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
+import {Router, Route, browserHistory} from 'react-router';
 import { Button, Form, Grid, Header, Image, Message, Segment } from 'semantic-ui-react'
+import './Registration';
+
+const url = 'http://709b5487.ngrok.io';
 
 class Login extends Component {
     constructor(props) {
@@ -8,6 +12,30 @@ class Login extends Component {
             username: '',
             password: ''
         }
+    }
+
+    onSubmit() {
+      fetch(url + '/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: this.state.username,
+          password: this.state.password,
+        }),
+      })
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((responseJson) => {
+        console.log(responseJson);
+        return responseJson;
+      })
+      .catch((err) => {
+        throw err;
+      });
     }
 
     render() {
@@ -32,16 +60,22 @@ class Login extends Component {
                         </Header>
                         <Form size='large'>
                             <Segment stacked>
-                                <Form.Input fluid icon='user' iconPosition='left' placeholder='E-mail address' />
+                                <Form.Input
+                                  fluid
+                                  icon='user'
+                                  iconPosition='left'
+                                  placeholder='Username'
+                                  onChange={(e)=>this.setState({username:e.target.value})}/>
                                 <Form.Input
                                     fluid
                                     icon='lock'
                                     iconPosition='left'
                                     placeholder='Password'
                                     type='password'
+                                    onChange={(e)=>this.setState({password:e.target.value})}
                                 />
 
-                                <Button color='purple' fluid size='large'>
+                                <Button color='purple' fluid size='large' onClick={() => this.onSubmit()}>
                                     Login
                                 </Button>
                             </Segment>
