@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 const models = require('./models/models');
 
 const User = models.User;
+var Document = models.Document;
 const routes = require('./routes/routes');
 const auth = require('./routes/auth');
 const path = require('path');
@@ -66,7 +67,11 @@ passport.use(new LocalStrategy(
 ));
 
 app.use('/', auth(passport));
-// app.use('/', routes);
+app.use('/', routes);
+
+
+
+
 
 module.exports = app;
 

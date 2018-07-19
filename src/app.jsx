@@ -24,7 +24,7 @@ export default class App extends React.Component {
 
   render() {
     return (<div>
-      <Dashboard />
+      <dashboard />
       <div>wow look at me</div>
     </div>);
   }
