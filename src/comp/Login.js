@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Router, Route, browserHistory} from 'react-router';
+// import {Router, Route, browserHistory} from 'react-router';
 import { Button, Form, Grid, Header, Image, Message, Segment } from 'semantic-ui-react'
 import './Registration';
 
