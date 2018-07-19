@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 const models = require('./models/models');
 
 const User = models.User;
+var Document = models.Document;
 const routes = require('./routes/routes');
 const auth = require('./routes/auth');
 const path = require('path');
@@ -67,6 +68,53 @@ passport.use(new LocalStrategy(
 
 app.use('/', auth(passport));
 // app.use('/', routes);
+
+//DO NOT DELETE. Route for dashboard rendering(To be tested)
+//Reminder: Be aware of async issue -> Make sure that Document.findById pushes all the docs before we return docArr
+/*
+app.get('/dashboard', function(req, res){
+  var userId = req.user._id
+    if (userId) {
+        var docArr = []
+        User.findById(userId, function(err, user) {
+            var userDocuments = user.documents
+            userDocuments.forEach(document => {
+                Document.findById(document, function(err, documentObject) {
+                docArr.push(documentObject)
+                })
+            })
+        })
+    } else {
+    res.send('You are not logged in!')
+    }
+})
+*/
+
+app.post('/dashboard/create', function(req, res) {
+  if(req.body.title.length > 0 && req.body.password.length > 0 && req.body.owner.length > 0) {
+      var newDocument = new Document ({
+        title: req.body.title,
+        password: req.body.password,
+        owner: req.body.owner,
+        edited: new Date(),
+        collaborators: []
+      })
+      newDocument.save(function(err, document) {
+        if (err) {
+          res.send(err)
+        } else {
+          console.log('User saved!')
+            console.log(document)
+            res.json({success: true})
+        }
+      })
+  } else {
+    res.status(500).send('Please, fill all the fields!')
+  }
+})
+
+
+
 
 module.exports = app;
 
