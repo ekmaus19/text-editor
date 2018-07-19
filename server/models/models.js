@@ -11,6 +11,10 @@ mongoose.connect(connect);
 const userSchema = mongoose.Schema({
   username: String,
   password: String,
+  documents: [{
+    type: mongoose.Schema.ObjectId,
+      ref: 'Document'
+  }]
 });
 
 const docSchema = mongoose.Schema({
@@ -19,10 +23,11 @@ const docSchema = mongoose.Schema({
   owner: String,
   // last edit/opened
   edited: String,
-  collaborators: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'User',
-  },
+  collaborators: [{
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+  }],
+   history: Array
 });
 
 const User = mongoose.model('User', userSchema);

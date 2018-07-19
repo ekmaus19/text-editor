@@ -18,8 +18,18 @@ class Dashboard extends React.Component {
       existingDocId: null,
       // set USER ID as props in login
       user: null,
+      documentList: null
     }
   }
+
+  /*componentDidMount() {
+    fetch('/dashboard/:id').then(response => {
+    console.log(response);
+    this.setState({
+        documentList: response.data
+      })
+    })
+  };*/
 
   // for creating a new document
   handleOpenModalNew() {

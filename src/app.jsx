@@ -23,7 +23,11 @@ export default class App extends React.Component {
 
   render() {
     return (<div>
+<<<<<<< HEAD
       <RichEditor />
+=======
+      <dashboard />
+>>>>>>> 212cec2ce38e5dadd12123b082fbf8facd7814ab
       <div>wow look at me</div>
     </div>);
   }

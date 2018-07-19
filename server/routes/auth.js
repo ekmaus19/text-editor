@@ -12,7 +12,8 @@ module.exports = (passport) => {
     }
     const user = new models.User({
       username: req.body.username,
-      password: req.body.password
+      password: req.body.password,
+      documents: []
     });
     console.log('inside register');
 
