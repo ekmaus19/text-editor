@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 const models = require('./models/models');
 
 const User = models.User;
-var Document = models.Document;
+const Document = models.Document;
 const routes = require('./routes/routes');
 const auth = require('./routes/auth');
 const path = require('path');
@@ -16,6 +16,15 @@ const MongoStore = require('connect-mongo')(session);
 const mongoose = require('mongoose');
 
 const app = express();
+
+app.use(session({
+  secret: process.env.SECRET,
+  name: 'googleDocClone',
+  store: new MongoStore({ mongooseConnection: mongoose.connection }),
+  proxy: true,
+  resave: true,
+  saveUninitialized: true,
+}));
 
 // Initialize Passport
 app.use(passport.initialize());
@@ -29,14 +38,6 @@ mongoose.connection.on('connected', () => {
 });
 mongoose.connect(process.env.MONGODB_URI);
 
-app.use(session({
-  secret: process.env.SECRET,
-  name: 'googleDocClone',
-  store: new MongoStore({ mongooseConnection: mongoose.connection }),
-  proxy: true,
-  resave: true,
-  saveUninitialized: true,
-}));
 
 // Passport Serialize
 passport.serializeUser((user, done) => {

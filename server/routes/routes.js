@@ -25,12 +25,15 @@ router.get('/current_user', (req, res) => {
 */
 
 // Create a new doc
-router.post('/dashboard/create', function(req, res) {
-    if(req.body.title.length > 0 && req.body.password.length > 0 && req.body.owner.length > 0) {
+router.post('/dashboard/create', (req, res) => {
+  console.log(req.user)
+  console.log(req.body.title)
+  console.log(req.body.password)
+    if (req.body.title.length > 0 && req.body.password.length > 0) {
         var newDocument = new Document ({
             title: req.body.title,
             password: req.body.password,
-            owner: req.body.owner,
+            owner: req.user.username,
             edited: new Date(),
             collaborators: []
         })
@@ -40,13 +43,17 @@ router.post('/dashboard/create', function(req, res) {
             } else {
                 User.findById(req.user._id, (err, user) => {
                     if (err) {
-                        res.status(500).send('User not found in database')
+                        res.status(404).json({error: 'User not found in database'})
                     } else {
                         user.documents.push(document._id)
+                        user.save((err, user) => {
+                          console.log('Document saved!')
+                          res.json(document)
+                        })
+
                     }
                 })
-                console.log('User saved!')
-                res.json(document)
+
             }
         })
     } else {
@@ -56,17 +63,18 @@ router.post('/dashboard/create', function(req, res) {
 
 // Dashboard Route
 // Loads all the documents associated with User
-router.get('/dashboard/', function(req, res){
+router.get('/dashboard', function(req, res){
     var userId = req.user._id
     if (userId) {
         var docArr = []
         User.findOne({_id: userId})
         .populate('documents')
-        .exec(function(err, docObject) {
+        .exec(function(err, userObject) {
             if (err) {
                 res.send('Could not find a document')
             } else {
-                docArr.push(docObject)
+              console.log(userObject);
+                docArr = docArr.concat(userObject.documents)
             }
             res.json(docArr)
         })

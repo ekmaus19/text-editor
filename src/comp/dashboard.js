@@ -1,9 +1,9 @@
-
 import React, { Component } from 'react';
+import {HashRouter, Route, Switch, Link, Redirect} from 'react-router-dom';
 import ReactModal from 'react-modal'
 import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react'
 
-const url = 'http://134f1802.ngrok.io';
+const url = 'http://127.0.0.1:1337';
 
 class Dashboard extends React.Component {
   constructor(props) {
@@ -12,13 +12,10 @@ class Dashboard extends React.Component {
       showModalNew: false,
       showModalOld: false,
 
-      newDocTitle: null,
-      newPassword: null,
-      newPasswordCheck: null,
-
-      existingDocId: null,
-      // set USER ID as props in login
-      user: null,
+      title: '',
+      password: '',
+      owner: '',
+      edited: '',
       documents: [],
     };
   }
@@ -41,18 +38,21 @@ class Dashboard extends React.Component {
     this.setState({showModalOld:false});
   }
 
-  // fetch(url + '/docs/owned', {
-  //   method: 'GET',
-  // }).then(res => res.json())
-  // .then(json => {
-  //   console.log(json)
-  //   this.setState({
-  //     documents: [...documents, json]
-  //   })
-  // })
-  // .catch((err) => {
-  //   throw err
-  // })
+  componentDidMount() {
+  fetch(url + '/dashboard', {
+    method: 'GET',
+    credentials: 'same-origin',
+  }).then(res => res.json())
+  .then(json => {
+    this.setState({
+      documents: this.state.documents.concat(json),
+      owner: this.props.match.params.userId
+    })
+  })
+  .catch((err) => {
+    throw err
+  })
+}
   //
   // fetch(url + '/docs/collabed', {
   //   method: 'GET',
@@ -68,99 +68,128 @@ class Dashboard extends React.Component {
   // })
 
   createDoc() {
-    const { newDocTitle, newPassword, newPasswordCheck } = this.state;
-    var _this = this
-    fetch(url + '/doc/create', {
+    const { title, password } = this.state;
+    const _this = this
+    fetch(url + '/dashboard/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'same-origin',
       body: JSON.stringify({
-        title: newDocTitle,
-        password: newPassword,
-        // passwordCheck: newPasswordCheck,
-        owner: this.props.userid,
-        lastEdit: new Date(),
+        title: this.state.title,
+        password: this.state.password,
+        owner: this.state.owner,
+        edited: this.state.edited,
       })
     }).then((response) => {
-      console.log(response);
+      console.log('1', response);
       return response.json();
     })
     .then((responseJson) => {
-      console.log(responseJson);
-      if (responseJson.success) {
-        _this.props.history.push('/editor/' + responseJson.user._id)
+      console.log('2', responseJson)
+      if (responseJson) {
+        this.handleCloseModalNew();
+        _this.props.history.push('/dashboard/' + responseJson.user._id)
       }
       return responseJson;
     })
     .catch((err) => {
       throw err;
     });
-    this.handleCloseModalNew();
   }
 
-  addDoc(id) {
-    fetch(url + '/doc/' + id, {
+  addDoc(docId) {
+    fetch(url + '/dashboard/' + docId, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'same-origin',
       body: JSON.stringify({
-        userid: this.props.userid
+        docId: this.state.docId
       })
     })
     .then(res => res.json())
-    .then(documents => this.setState({documents})).catch(err => {throw err});
+    .then((json) => {
+      this.setState({documents: [...this.state.documents, json]})
+      if (json.success) {
+        _this.props.history.push('/editor/' + json.document._id)
+      }
+    })
+    .catch(err => {throw err});
   }
+
+  editDoc(docId) {
+    const _this = this
+    fetch(url + '/dashboard/' + docId, {
+      method: 'GET',
+      credentials: 'same-origin',
+    }).then(res => {
+      res.json()
+      console.log(res.json)
+    }
+    )
+    .then(json => {
+      console.log('----------->', json)
+    _this.props.history.push('/editor/')
+  })
+  .catch((err) => {
+    throw err
+  })
+}
 
   render() {
     const docList = () => {
+      console.log("ghghh",this.state.documents)
       return this.state.documents.map(doc => {
-        <Table.Body>
+        console.log(doc)
+        return (<Table.Body key={doc._id}>
           <Table.Row className="singleDoc">
             <Table.Cell>
               <Header as='h4'>
                 <Icon className="file alternate outline"/>
-                <Header.Content>
-                  {doc.title} {this.props.match.params.userId}
-                  <Header.Subheader>{doc.lastEdit}</Header.Subheader>
+                <Link to={{ pathname: '/editor' }}>
+                <Header.Content
+                  // onClick={() => this.editDoc()}
+                  >
+                  {doc.title}
+                  <Header.Subheader>{doc.owner}</Header.Subheader>
                 </Header.Content>
+                </Link>
               </Header>
             </Table.Cell>
           </Table.Row>
         </Table.Body>
-      });
+      )});
     };
 
     return (
       <div>
         <div className="dashboardContain">
           <div id="documentDash">
-            <p id="docDashHead"><Icon className='copy outline'/><b>Dashboard:</b></p>
+            <p id="docDashHead"><Icon className='copy outline'/><b>Dashboard</b></p>
 
             <div className="button" id="docDashButtonMain">
               <Button onClick={() => this.handleOpenModalNew()}>Create New Document</Button>
               <Button onClick={() => this.handleOpenModalOld()}>Add Existing Doc</Button>
             </div>
 
+            {ReactModal.setAppElement('body')}
+
             <ReactModal className="Modal" isOpen={this.state.showModalNew}>
               <div>
-                <Header>The Modal Lives!</Header>
+                <Header>New Document</Header>
                 <Form>
                   <Form.Field>
                     {/* Make a New Document */}
                     <label>Document Name: </label>
-                    <input type='text' placeholder="Name..." onChange={(e) => (this.setState({newDocTitle:e.target.value}))}></input>
+                    <input type='text' placeholder="Name..." onChange={(e) => (this.setState({title:e.target.value}))}></input>
                   </Form.Field>
 
                   <Form.Field>
                     <label>Set Document Password: </label>
-                    <input type='password' placeholder="Password..." onChange={(e) => (this.setState({newPassword:e.target.value}))}></input>
-                  </Form.Field>
-
-                  <Form.Field>
-                    <label>Check Password: </label>
-                    <input type='password' placeholder="Check Password..." onChange={(e) => (this.setState({newPasswordCheck:e.target.value}))}></input>
+                    <input type='password' placeholder="Password..." onChange={(e) => (this.setState({password:e.target.value}))}></input>
                   </Form.Field>
 
                   {/* buttons */}

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import {BrowserRouter as Router, Route, Switch, Link} from 'react-router-dom';
+import {HashRouter, Route, Switch, Link, Redirect} from 'react-router-dom';
 import { Button, Form, Grid, Header, Image, Message, Segment } from 'semantic-ui-react'
 import './Registration';
 
-const url = 'http://134f1802.ngrok.io';
+const url = 'http://127.0.0.1:1337';
 
 class Login extends Component {
     constructor(props) {
