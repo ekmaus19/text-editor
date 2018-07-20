@@ -37,5 +37,8 @@ export default class App extends React.Component {
    </HashRouter>
 
    )
+      <div>wow look at me</div>
+    </div>);
+>>>>>>> master
   }
 }

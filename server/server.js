@@ -4,6 +4,9 @@ import session from 'express-session';
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import bodyParser from 'body-parser';
+import socketIO from 'socket.io'
+//import {auth} from './socket-api'
+import {document} from './socket-api/document.js'
 
 const models = require('./models/models');
 
@@ -16,6 +19,8 @@ const MongoStore = require('connect-mongo')(session);
 const mongoose = require('mongoose');
 
 const app = express();
+const server = http.Server(app)
+const io = socketIO(server)
 
 app.use(session({
   secret: process.env.SECRET,
@@ -71,12 +76,12 @@ app.use('/', auth(passport));
 app.use('/', routes);
 
 
-
+//io.on('documentChange'm )
 
 
 module.exports = app;
 
-const server = http.createServer(app);
+//const server = http.createServer(app);
 server.listen(1337, '127.0.0.1');
 
 console.log('Server running at http://127.0.0.1:1337/');

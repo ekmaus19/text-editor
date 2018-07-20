@@ -13,17 +13,6 @@ router.get('/current_user', (req, res) => {
   res.send(req.user);
 });
 
-// create a new document
-/*app.post('/doc/create', function (req, res) {
-  new Document(req.body)
-    .save()
-    .then((doc) => res.json({
-      id: doc._id,
-      title: doc.title,
-      owner: doc.owner}))
-    });
-*/
-
 // Create a new doc
 router.post('/dashboard/create', (req, res) => {
   console.log(req.user)
@@ -59,9 +48,34 @@ router.post('/dashboard/create', (req, res) => {
     } else {
         res.status(400).send('Please, fill all the fields!')
     }
-})
+})*/
 
-// Dashboard Route
+// Create for testing purposes in backend
+/*
+router.post('/dashboard/create', function(req, res) {
+    if(req.body.title.length > 0 && req.body.password.length > 0 && req.body.owner.length > 0) {
+        var newDocument = new Document ({
+            title: req.body.title,
+            password: req.body.password,
+            owner: req.body.owner,
+            edited: new Date(),
+            collaborators: []
+        })
+        newDocument.save(function(err, document) {
+            if (err) {
+                res.send(err)
+            } else {
+                console.log('User saved!')
+                res.json(document)
+            }
+        })
+    } else {
+        res.status(400).send('Please, fill all the fields!')
+    }
+})
+*/
+
+
 // Loads all the documents associated with User
 router.get('/dashboard', function(req, res){
     var userId = req.user._id
@@ -97,6 +111,41 @@ router.get('/dashboard/:docId', function(req, res) {
         })
     }
 })
+
+
+// Adding collaborators
+// Adds collaborator ID to document collection
+// Adds document ID to user collection
+router.post('/dashboard/:docId/addCollaborator', function(req, res) {
+    let docId = req.params.docId
+    let collaborator;
+    User.findOne({username: req.body.username})
+        .exec()
+        .then(function(collaborator1){
+            collaborator = collaborator1
+            if(collaborator === null) {
+                res.status(400).send('Collaborator not found')
+            } else {
+                collaborator.documents.push(docId)
+                collaborator.save()
+                return Document.findById(docId).exec()
+            }
+        })
+        .then(function(documentObject){
+            if(documentObject === null) {
+                res.status(400).send('Collaborator ID not found')
+            } else {
+                documentObject.collaborators.push(collaborator._id)
+                return documentObject.save()
+            }
+        }).then(function(updatedDocumentObject){
+            res.send(updatedDocumentObject)
+    })
+        .catch(function(err) {
+            res.status(500).send('Database error', err)
+        })
+})
+
 
 
 module.exports = router;
