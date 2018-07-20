@@ -9,7 +9,10 @@ const connect = process.env.MONGODB_URI;
 mongoose.connect(connect);
 
 const userSchema = mongoose.Schema({
-  username: String,
+  username: {
+    type: String,
+    unique: true,
+  },
   password: String,
   documents: [{
     type: mongoose.Schema.ObjectId,

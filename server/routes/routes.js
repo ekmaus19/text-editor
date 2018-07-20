@@ -48,7 +48,7 @@ router.post('/dashboard/create', (req, res) => {
     } else {
         res.status(400).send('Please, fill all the fields!')
     }
-})*/
+})
 
 // Create for testing purposes in backend
 /*
@@ -104,9 +104,9 @@ router.get('/dashboard/:docId', function(req, res) {
     if(docId){
         Document.findOne({_id: docId}, function(err, docObject) {
             if(err) {
-                res.send('Document does not exist')
+                res.send({success: false, error:'Document does not exist'})
             } else {
-                res.json(docObject.history[-1])
+                res.json({success: true, document: docObject})
             }
         })
     }
@@ -116,7 +116,7 @@ router.get('/dashboard/:docId', function(req, res) {
 // Adding collaborators
 // Adds collaborator ID to document collection
 // Adds document ID to user collection
-router.post('/dashboard/:docId/addCollaborator', function(req, res) {
+router.post('/editor/:docId/addCollaborator', function(req, res) {
     let docId = req.params.docId
     let collaborator;
     User.findOne({username: req.body.username})
@@ -133,7 +133,7 @@ router.post('/dashboard/:docId/addCollaborator', function(req, res) {
         })
         .then(function(documentObject){
             if(documentObject === null) {
-                res.status(400).send('Collaborator ID not found')
+                res.status(400).send('Document ID not found')
             } else {
                 documentObject.collaborators.push(collaborator._id)
                 return documentObject.save()

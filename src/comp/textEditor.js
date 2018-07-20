@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import {HashRouter, Route, Switch, Link, Redirect} from 'react-router-dom';
+import ReactModal from 'react-modal';
 import {Editor, EditorState, RichUtils, Modifier, CompositeDecorator} from 'draft-js'
 // import { Button } from 'react-bootstrap'
 import ColorPicker, {colorPickerPlugin} from 'draft-js-color-picker'
 import createStyles from 'draft-js-custom-styles'
-import { Button, Icon, Header, Input } from 'semantic-ui-react'
+import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react'
 // import '../Editor.css';
+
+const url = 'http://127.0.0.1:1337';
 
 
 const SearchHighlight = (props) => (
@@ -78,6 +81,7 @@ class RichEditor extends React.Component {
       editorState: EditorState.createEmpty(),
       fontInput: null,
       search: '',
+      addUserModal: false,
     }
     this.updateEditorState = editorState => this.setState({editorState});
     this.getEditorState = () => this.state.editorState;
@@ -87,6 +91,45 @@ class RichEditor extends React.Component {
     this.picker = colorPickerPlugin(this.updateEditorState, this.getEditorState);
   }
 
+  componentDidMount() {
+    // const self = this
+    // const socket = this.props
+    // socket.emit('fetchDoc', { docId: self.state.doc._id }, (res) => {
+    //   socket.on('sendDoc', (doc) => {
+    //     self.setState({
+    //       doc: res.doc
+    //     });
+    //   })
+    // })
+    fetch(url + '/dashboard/' + this.props.match.params.docId, {
+      method: 'GET',
+      credentials: 'same-origin',
+    }).then(res => {
+      return res.json()
+    }
+    )
+    .then(json => {
+      console.log('----------->', json)
+      if (json.success) {
+        this.setState({
+          document: json.document
+        })
+      } else {
+        console.log(json.error)
+      }
+  })
+  .catch((err) => {
+    throw err
+  })
+  }
+
+  handleAddUserModal() {
+     this.setState({addUserModal: true});
+   };
+
+   handleAddUserModalClose() {
+      this.setState({addUserModal: false});
+    };
 
   _handleKeyCommand(command) {
     const {editorState} = this.state;
@@ -282,7 +325,7 @@ isSelection(editorState) {
 
          <div className='right menu'>
            <a className='item'>
-             <Input type="text" className='searchText' onChange={this.onChangeSearch}></Input>
+             <input type="text" className='searchText' onChange={this.onChangeSearch}></input>
              <Button onClick={this.onReplace}>Search</Button>
            </a>
          </div>
@@ -306,6 +349,25 @@ isSelection(editorState) {
        <Button className="backButton">Back</Button>
      </Link>
 
+<Button onClick={() => this.handleAddUserModal()}>Add Collaborator</Button>
+
+<ReactModal className="Modal" isOpen={this.state.showModalOld}>
+             <div className="modal-dialog" role="document">
+
+               <Form>
+                 <Form.Field>
+                   <label>Input existing document ID: </label>
+                   <input type='text' placeholder="Paste existing ID here..." onChange={(e) => (this.setState({existingDocId:e.target.value}))}></input>
+                 </Form.Field>
+
+                 <div>
+                   <Button onClick={() => this.addUserCall()}>Add User</Button>
+                   <Button onClick={() => this.handleAddUserModalClose()}>Cancel</Button>
+                 </div>
+
+               </Form>
+             </div>
+           </ReactModal>
      </div>
    </div>);
  }

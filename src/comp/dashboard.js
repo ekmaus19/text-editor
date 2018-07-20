@@ -120,23 +120,9 @@ class Dashboard extends React.Component {
     .catch(err => {throw err});
   }
 
-  editDoc(docId) {
+  getDoc(docId) {
     const _this = this
-    fetch(url + '/dashboard/' + docId, {
-      method: 'GET',
-      credentials: 'same-origin',
-    }).then(res => {
-      res.json()
-      console.log(res.json)
-    }
-    )
-    .then(json => {
-      console.log('----------->', json)
-    _this.props.history.push('/editor/')
-  })
-  .catch((err) => {
-    throw err
-  })
+    _this.props.history.push('/editor/' + docId)
 }
 
   render() {
@@ -149,14 +135,14 @@ class Dashboard extends React.Component {
             <Table.Cell>
               <Header as='h4'>
                 <Icon className="file alternate outline"/>
-                <Link to={{ pathname: '/editor' }}>
+                {/* <Link to={{ pathname: '/editor' }}> */}
                 <Header.Content
-                  // onClick={() => this.editDoc()}
+                  onClick={() => this.getDoc(doc._id)}
                   >
                   {doc.title}
                   <Header.Subheader>{doc.owner}</Header.Subheader>
                 </Header.Content>
-                </Link>
+                {/* </Link> */}
               </Header>
             </Table.Cell>
           </Table.Row>

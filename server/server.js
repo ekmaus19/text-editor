@@ -5,7 +5,6 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import bodyParser from 'body-parser';
 import socketIO from 'socket.io'
-//import {auth} from './socket-api'
 import {document} from './socket-api/document.js'
 
 const models = require('./models/models');
@@ -20,7 +19,15 @@ const mongoose = require('mongoose');
 
 const app = express();
 const server = http.Server(app)
-const io = socketIO(server)
+// const io = socketIO(server)
+//
+// io.on('connection', function (socket) {
+//   socket.on('fetchDoc', (docId) => {
+//     doc.findById(docId).then(doc => {
+//       socket.emit('sendDoc', doc: doc))
+//     })
+//   })
+// }
 
 app.use(session({
   secret: process.env.SECRET,

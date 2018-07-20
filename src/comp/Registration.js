@@ -15,7 +15,7 @@ class Register extends Component {
   }
 
   onSubmit() {
-    var _this = this
+    const _this = this
     fetch(url + '/register', {
       method: 'POST',
       headers: {

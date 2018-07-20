@@ -31,14 +31,10 @@ export default class App extends React.Component {
          <Route exact path="/" component={Login} />
          <Route exact path="/register" component={Register} />
          <Route exact path="/dashboard/:id" component={Dashboard} />
-         <Route exact path="/editor/" component={RichEditor} />
+         <Route exact path="/editor/:docId" component={RichEditor} />
 
      </div>
    </HashRouter>
-
    )
-      <div>wow look at me</div>
-    </div>);
->>>>>>> master
   }
 }
