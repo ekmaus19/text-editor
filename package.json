@@ -87,6 +87,8 @@
     "semantic-ui": "^2.3.3",
 >>>>>>> 212cec2ce38e5dadd12123b082fbf8facd7814ab
     "semantic-ui-react": "^0.82.0",
+    "socket.io": "^2.1.1",
+    "socketio-auth": "^0.1.1",
     "validator": "^10.4.0"
   },
   "plugins": [
