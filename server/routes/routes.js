@@ -157,4 +157,30 @@ router.post('/editor/:docId/addCollaborator', function(req, res) {
         })
 })
 
+//Saving Dashboard and pushing it to a history of saves
+router.post('/dashboard/:docId/save', function(req, res) {
+    var docId = req.params.docId
+    //console.log(docId)
+    //Document.findById(docId)
+    Document.findOne({_id: docId})
+        .then(function(documentObj) {
+            console.log(documentObj)
+            if(documentObj === null) {
+                res.status(400).json({message:'Doc ID not found'})
+            } else {
+                documentObj.history.push(req.body.rawState)
+                return documentObj.save()
+            }
+        })
+        .then(function(updatedDocumentObject) {
+            console.log(updatedDocumentObject)
+            res.status(200).json({message:'Life is great!'})
+        })
+        .catch(function(err) {
+            res.status(500).send({error: err})
+        })
+})
+
+
+
 module.exports = router;
