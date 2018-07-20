@@ -87,7 +87,7 @@ router.get('/dashboard', function(req, res){
             if (err) {
                 res.send('Could not find a document')
             } else {
-              console.log(userObject);
+              // console.log(userObject);
                 docArr = docArr.concat(userObject.documents)
             }
             res.json(docArr)
@@ -117,6 +117,7 @@ router.get('/dashboard/:docId', function(req, res) {
 // Adds collaborator ID to document collection
 // Adds document ID to user collection
 router.post('/editor/:docId/addCollaborator', function(req, res) {
+  console.log("sent username ------->",req.body.username)
     let docId = req.params.docId
     let collaborator;
     User.findOne({username: req.body.username})
@@ -126,6 +127,7 @@ router.post('/editor/:docId/addCollaborator', function(req, res) {
             if(collaborator === null) {
                 res.status(400).send('Collaborator not found')
             } else {
+              console.log('hit doc push')
                 collaborator.documents.push(docId)
                 collaborator.save()
                 return Document.findById(docId).exec()
@@ -135,17 +137,24 @@ router.post('/editor/:docId/addCollaborator', function(req, res) {
             if(documentObject === null) {
                 res.status(400).send('Document ID not found')
             } else {
-                documentObject.collaborators.push(collaborator._id)
+              console.log('hit collab push')
+              console.log('collaborators object ---->', documentObject.collaborators)
+              console.log('document object======>', documentObject)
+              console.log('adding the new collab ~~~~>', collaborator.id)
+                // var test = [collaborator.username]
+                // console.log(test)
+                documentObject.collaborators.push(collaborator.id)
+                console.log(documentObject.collaborators)
                 return documentObject.save()
             }
-        }).then(function(updatedDocumentObject){
+        })
+        .then(function(updatedDocumentObject){
+          console.log('hit me baby one more time')
             res.send(updatedDocumentObject)
     })
         .catch(function(err) {
             res.status(500).send('Database error', err)
         })
 })
-
-
 
 module.exports = router;

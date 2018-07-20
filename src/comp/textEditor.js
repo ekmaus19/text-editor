@@ -5,8 +5,8 @@ import {Editor, EditorState, RichUtils, Modifier, CompositeDecorator} from 'draf
 // import { Button } from 'react-bootstrap'
 import ColorPicker, {colorPickerPlugin} from 'draft-js-color-picker'
 import createStyles from 'draft-js-custom-styles'
-import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react'
-// import '../Editor.css';
+import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react';
+import io from 'socket.io-client'
 
 const url = 'http://127.0.0.1:1337';
 
@@ -82,6 +82,7 @@ class RichEditor extends React.Component {
       fontInput: null,
       search: '',
       addUserModal: false,
+      newCollab: '',
     }
     this.updateEditorState = editorState => this.setState({editorState});
     this.getEditorState = () => this.state.editorState;
@@ -92,15 +93,8 @@ class RichEditor extends React.Component {
   }
 
   componentDidMount() {
-    // const self = this
-    // const socket = this.props
-    // socket.emit('fetchDoc', { docId: self.state.doc._id }, (res) => {
-    //   socket.on('sendDoc', (doc) => {
-    //     self.setState({
-    //       doc: res.doc
-    //     });
-    //   })
-    // })
+    this.socket = io(url)
+
     fetch(url + '/dashboard/' + this.props.match.params.docId, {
       method: 'GET',
       credentials: 'same-origin',
@@ -130,6 +124,36 @@ class RichEditor extends React.Component {
    handleAddUserModalClose() {
       this.setState({addUserModal: false});
     };
+
+    addUserCall(e) {
+      e.preventDefault()
+      console.log(this.props.match.params.docId)
+      console.log(this.state.newCollab)
+
+      fetch(url + '/editor/' + this.props.match.params.docId +'/addCollaborator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // credentials: 'same-origin',
+        body: JSON.stringify({
+          username: this.state.newCollab,
+        })
+      })
+      .then(res => {
+        return res.json()
+        console.log('smth')
+      })
+      .then((json) => {
+        console.log('json', json)
+        if (json.success) {
+          console.log('json ------->',json)
+          this.handleAddUserModalClose()
+        }
+      })
+      .catch(err => {throw err});
+      }
+
 
   _handleKeyCommand(command) {
     const {editorState} = this.state;
@@ -351,17 +375,17 @@ isSelection(editorState) {
 
 <Button onClick={() => this.handleAddUserModal()}>Add Collaborator</Button>
 
-<ReactModal className="Modal" isOpen={this.state.showModalOld}>
+<ReactModal className="Modal" isOpen={this.state.addUserModal}>
              <div className="modal-dialog" role="document">
 
                <Form>
                  <Form.Field>
-                   <label>Input existing document ID: </label>
-                   <input type='text' placeholder="Paste existing ID here..." onChange={(e) => (this.setState({existingDocId:e.target.value}))}></input>
+                   <label>Input a collaborator: </label>
+                   <input type='text' placeholder="Type username here..." onChange={(e) => (this.setState({newCollab:e.target.value}))}></input>
                  </Form.Field>
 
                  <div>
-                   <Button onClick={() => this.addUserCall()}>Add User</Button>
+                   <Button onClick={(e) => this.addUserCall(e)}>Add User</Button>
                    <Button onClick={() => this.handleAddUserModalClose()}>Cancel</Button>
                  </div>
 
