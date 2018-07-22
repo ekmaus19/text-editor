@@ -158,7 +158,7 @@ class Dashboard extends React.Component {
 
             <div className="button" id="docDashButtonMain">
               <Button onClick={() => this.handleOpenModalNew()}>Create New Document</Button>
-              <Button onClick={() => this.handleOpenModalOld()}>Add Existing Doc</Button>
+              {/* <Button onClick={() => this.handleOpenModalOld()}>Add Existing Doc</Button> */}
             </div>
 
             {ReactModal.setAppElement('body')}

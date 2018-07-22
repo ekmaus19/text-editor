@@ -19,6 +19,7 @@ module.exports = (passport) => {
         console.log(err);
       }
       console.log(user);
+      res.send({ success: true })
       res.json(user);
     });
   });

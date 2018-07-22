@@ -5,8 +5,8 @@ import {Editor, EditorState, RichUtils, Modifier, CompositeDecorator, convertToR
 // import { Button } from 'react-bootstrap'
 import ColorPicker, {colorPickerPlugin} from 'draft-js-color-picker'
 import createStyles from 'draft-js-custom-styles'
-import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react'
-// import '../Editor.css';
+import { Button, Icon, Header, Form, Table, Image } from 'semantic-ui-react';
+import io from 'socket.io-client'
 
 const url = 'http://127.0.0.1:1337';
 
@@ -93,15 +93,20 @@ class RichEditor extends React.Component {
     }
 
     componentDidMount() {
-        // const self = this
-        // const socket = this.props
-        // socket.emit('fetchDoc', { docId: self.state.doc._id }, (res) => {
-        //   socket.on('sendDoc', (doc) => {
-        //     self.setState({
-        //       doc: res.doc
-        //     });
-        //   })
-        // })
+      this.socket = io(url)
+      socket.emit('openDocument', {docId: this.props.match.params.docId}, (res) => {
+      if(res.err) return alert('Opps Error')
+      this.setState({
+        doc: res.doc,
+        loading: false,
+      })
+
+res.doc.rawState && this.setState({editorState: EditorState.createWithContent(convertFromRaw(JSON.parse(res.doc.rawState)))})
+
+      // start watching the document to sync live edits
+      socket.on('syncDocument', this.remoteStateChange)
+    })
+
         fetch(url + '/dashboard/' + this.props.match.params.docId, {
             method: 'GET',
             credentials: 'same-origin',
@@ -127,6 +132,30 @@ class RichEditor extends React.Component {
              })
     }
 
+    componentWillUnmount() {
+
+  // clean up our listeners
+  socket.off('syncDocument', this.remoteStateChange)
+  socket.emit('closeDocument', {docId: this.props.match.params.docId}, (res) => {
+    if(res.err) return alert('Opps Error')
+    this.setState({ docs: res.docs })
+  })
+}
+
+ remoteStateChange = (res) => {
+    this.setState({editorState: EditorState.createWithContent(convertFromRaw(res.rawState))});
+  }
+
+  onChange = (editorState) => {
+
+   this.setState({editorState}, () => {
+     this.props.socket.emit('syncDocument', {
+       docId: this.state.doc._id,
+       rawState: convertToRaw(editorState.getCurrentContent()),
+     });
+   })
+ }
+
     handleSaveButton() {
         fetch('http://127.0.0.1:1337/dashboard/' + this.props.match.params.docId + '/save', {
             method: 'POST',
@@ -146,7 +175,7 @@ class RichEditor extends React.Component {
             .catch(error => console.log('Error:', error))
     }
 
-    
+
     handleAddUserModal() {
         this.setState({addUserModal: true});
     };
@@ -155,25 +184,50 @@ class RichEditor extends React.Component {
         this.setState({addUserModal: false});
     };
 
-    _handleKeyCommand(command) {
-        const {editorState} = this.state;
-        const newState = RichUtils.handleKeyCommand(editorState, command);
-        if (newState) {
-            this.onChange(newState);
-            return true;
+    addUserCall(e) {
+      e.preventDefault()
+      console.log(this.props.match.params.docId)
+      console.log(this.state.newCollab)
+
+      fetch(url + '/editor/' + this.props.match.params.docId +'/addCollaborator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // credentials: 'same-origin',
+        body: JSON.stringify({
+          username: this.state.newCollab,
+        })
+      })
+      .then(res => {
+        return res.json()
+        console.log('smth')
+      })
+      .then((json) => {
+        console.log('json', json)
+        if (json.success) {
+          console.log('json ------->',json)
+          this.handleAddUserModalClose()
         }
-        return false
+      })
+      .catch(err => {throw err});
+      }
+
+
+  _handleKeyCommand(command) {
+    const {editorState} = this.state;
+    const newState = RichUtils.handleKeyCommand(editorState, command);
+    if (newState) {
+      this.onChange(newState);
+      return true;
     }
-    _onTab(e) {
-        const maxDepth = 4;
-        this.onChange(RichUtils.onTab(e, this.state.editorState, maxDepth));
-    }
-    _onBoldClick() {
-        this.onChange(RichUtils.toggleInlineStyle(
-            this.state.editorState,
-            "BOLD"
-        ));
-    }
+  }
+  _onBoldClick() {
+      this.onChange(RichUtils.toggleInlineStyle(
+          this.state.editorState,
+          "BOLD"
+      ));
+  }
     _onItalicizeClick() {
         this.onChange(RichUtils.toggleInlineStyle(
             this.state.editorState,
@@ -325,75 +379,75 @@ class RichEditor extends React.Component {
             {/* <Button icon onClick={this.onToggleStyle("text-align-right")}><Icon className='align right'/></Button>
                   <Button icon onClick={this.onToggleStyle("text-align-center")}><Icon className='align center'/></Button>
                   <Button icon onClick={this.onToggleStyle("text-align-left")}><Icon className='align left'/></Button> */}
-            <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'right')}><Icon className='align right'/></Button>
-            <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'center')}><Icon className='align center'/></Button>
-            <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'left')}><Icon className='align left'/></Button>
-            </Button.Group>
-            </a>
-            <a className='item'>
-            <Button.Group >
-            <Button icon onClick={this.toggleNumberedList.bind(this)}><Icon className='list ol'/></Button>
-            <Button icon onClick={this.toggleBulletPoints.bind(this)}><Icon className='list ul'/></Button>
-            </Button.Group>
-            </a>
+                  <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'right')}><Icon className='align right'/></Button>
+                  <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'center')}><Icon className='align center'/></Button>
+                  <Button className="btn btn-default" onMouseDown={(e) => this.toggleBlockType(e, 'left')}><Icon className='align left'/></Button>
+                </Button.Group>
+              </a>
+              <a className='item'>
+               <Button.Group >
+                 <Button icon onClick={this.toggleNumberedList.bind(this)}><Icon className='list ol'/></Button>
+                 <Button icon onClick={this.toggleBulletPoints.bind(this)}><Icon className='list ul'/></Button>
+               </Button.Group>
+             </a>
 
-            <a className='item'>
-            <Button.Group>
-            <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-six')}>12</Button>
-        <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-two')}>24</Button>
-        <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-one')}>32</Button>
-        </Button.Group>
-        </a>
+             <a className='item'>
+               <Button.Group>
+                 <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-six')}>12</Button>
+                 <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-two')}>24</Button>
+                 <Button onMouseDown= {(e)=>this.toggleFont(e, 'header-one')}>32</Button>
+               </Button.Group>
+             </a>
 
 
 
-        <div className='right menu'>
-            <a className='item'>
-            <input type="text" className='searchText' onChange={this.onChangeSearch}></input>
-        <Button onClick={this.onReplace}>Search</Button>
-        </a>
-        </div>
+         <div className='right menu'>
+           <a className='item'>
+             <input type="text" className='searchText' onChange={this.onChangeSearch}></input>
+             <Button onClick={this.onReplace}>Search</Button>
+           </a>
+         </div>
 
-        </div>
+         </div>
 
-        <div id="editor" ref='editor'>
-            <Editor
-        editorState={this.state.editorState}
-        customStyleFn={customStyleFn}
-        customStyleMap={customStyleMap}
-        blockStyleFn={getBlockStyle}
-        onChange={this.onChange}
-        spellCheck={true}
-        handleKeyCommand={this.handleKeyCommand}
-        />
-        </div>
+         <div id="editor" ref='editor'>
+           <Editor
+             editorState={this.state.editorState}
+             customStyleFn={customStyleFn}
+             customStyleMap={customStyleMap}
+             blockStyleFn={getBlockStyle}
+             onChange={this.onChange}
+             spellCheck={true}
+             handleKeyCommand={this.handleKeyCommand}
+           />
+         </div>
 
-        <Button onClick={this.handleSaveButton.bind(this)} className='backButton'>Save Changes</Button>
-        <Link to={{ pathname: '/dashboard/' + this.props.match.params.userId}}>
-    <Button className="backButton">Back</Button>
-            </Link>
+       <Button onClick={this.handleSaveButton.bind(this)} className='backButton'>Save Changes</Button>
+       <Link to={{ pathname: '/dashboard/' + this.props.match.params.userId}}>
+       <Button className="backButton">Back</Button>
+     </Link>
 
-            <Button onClick={() => this.handleAddUserModal()}>Add Collaborator</Button>
+<Button onClick={() => this.handleAddUserModal()}>Add Collaborator</Button>
 
-        <ReactModal className="Modal" isOpen={this.state.showModalOld}>
-    <div className="modal-dialog" role="document">
+<ReactModal className="Modal" isOpen={this.state.addUserModal}>
+             <div className="modal-dialog" role="document">
 
-            <Form>
-            <Form.Field>
-            <label>Input existing document ID: </label>
-        <input type='text' placeholder="Paste existing ID here..." onChange={(e) => (this.setState({existingDocId:e.target.value}))}></input>
-        </Form.Field>
+               <Form>
+                 <Form.Field>
+                   <label>Input a collaborator: </label>
+                   <input type='text' placeholder="Type username here..." onChange={(e) => (this.setState({newCollab:e.target.value}))}></input>
+                 </Form.Field>
 
-        <div>
-        <Button onClick={() => this.addUserCall()}>Add User</Button>
-        <Button onClick={() => this.handleAddUserModalClose()}>Cancel</Button>
-        </div>
+                 <div>
+                   <Button onClick={(e) => this.addUserCall(e)}>Add User</Button>
+                   <Button onClick={() => this.handleAddUserModalClose()}>Cancel</Button>
+                 </div>
 
-        </Form>
-        </div>
-        </ReactModal>
-        </div>
-        </div>);
-    }
+               </Form>
+             </div>
+           </ReactModal>
+     </div>
+   </div>);
+ }
 }
 export default RichEditor;
