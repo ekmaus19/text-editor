@@ -93,15 +93,20 @@ class RichEditor extends React.Component {
     }
 
     componentDidMount() {
-        // const self = this
-        // const socket = this.props
-        // socket.emit('fetchDoc', { docId: self.state.doc._id }, (res) => {
-        //   socket.on('sendDoc', (doc) => {
-        //     self.setState({
-        //       doc: res.doc
-        //     });
-        //   })
-        // })
+      this.socket = io(url)
+      socket.emit('openDocument', {docId: this.props.match.params.docId}, (res) => {
+      if(res.err) return alert('Opps Error')
+      this.setState({
+        doc: res.doc,
+        loading: false,
+      })
+
+res.doc.rawState && this.setState({editorState: EditorState.createWithContent(convertFromRaw(JSON.parse(res.doc.rawState)))})
+
+      // start watching the document to sync live edits
+      socket.on('syncDocument', this.remoteStateChange)
+    })
+
         fetch(url + '/dashboard/' + this.props.match.params.docId, {
             method: 'GET',
             credentials: 'same-origin',
@@ -126,6 +131,30 @@ class RichEditor extends React.Component {
                 throw err
              })
     }
+
+    componentWillUnmount() {
+
+  // clean up our listeners
+  socket.off('syncDocument', this.remoteStateChange)
+  socket.emit('closeDocument', {docId: this.props.match.params.docId}, (res) => {
+    if(res.err) return alert('Opps Error')
+    this.setState({ docs: res.docs })
+  })
+}
+
+ remoteStateChange = (res) => {
+    this.setState({editorState: EditorState.createWithContent(convertFromRaw(res.rawState))});
+  }
+
+  onChange = (editorState) => {
+
+   this.setState({editorState}, () => {
+     this.props.socket.emit('syncDocument', {
+       docId: this.state.doc._id,
+       rawState: convertToRaw(editorState.getCurrentContent()),
+     });
+   })
+ }
 
     handleSaveButton() {
         fetch('http://127.0.0.1:1337/dashboard/' + this.props.match.params.docId + '/save', {
@@ -192,6 +221,13 @@ class RichEditor extends React.Component {
       this.onChange(newState);
       return true;
     }
+  }
+  _onBoldClick() {
+      this.onChange(RichUtils.toggleInlineStyle(
+          this.state.editorState,
+          "BOLD"
+      ));
+  }
     _onItalicizeClick() {
         this.onChange(RichUtils.toggleInlineStyle(
             this.state.editorState,

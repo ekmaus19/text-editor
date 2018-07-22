@@ -1,7 +1,6 @@
 const express = require('express');
 const models = require('../models/models');
 var router = express.Router();
-
 const User = models.User;
 const Document = models.Document;
 const app = express();
@@ -100,6 +99,7 @@ router.get('/dashboard', function(req, res){
 // Document Route
 // Loads the most recent version of individual document
 router.get('/dashboard/:docId', function(req, res) {
+
     var docId = req.params.docId
     if(docId){
         Document.findOne({_id: docId}, function(err, docObject) {

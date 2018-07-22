@@ -19,15 +19,28 @@ const mongoose = require('mongoose');
 
 const app = express();
 const server = http.Server(app)
-// const io = socketIO(server)
-//
-// io.on('connection', function (socket) {
-//   socket.on('fetchDoc', (docId) => {
-//     doc.findById(docId).then(doc => {
-//       socket.emit('sendDoc', doc: doc))
-//     })
-//   })
-// }
+const io = socketIO(server);
+
+io.on('connection', function (socket) {
+
+  socket.on('openDocument', (data, next) => {
+     socket.join(data.docId)
+
+     Doc.findOne({
+       _id: data.docId,
+     }, (err, doc) => next({err, doc}))
+   })
+
+   socket.on('syncDocument', (data, next) => {
+     socket.to(data.docId).emit('syncDocument', data)
+   })
+
+   socket.on('closeDocument', (data, next) => {
+     // TODO: think about saving at this point?
+     socket.leave(data.docId)
+     next({err: null})
+   })
+})
 
 app.use(session({
   secret: process.env.SECRET,
