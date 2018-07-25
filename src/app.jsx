@@ -3,7 +3,7 @@ import {HashRouter, Route, Switch, Link, Redirect} from 'react-router-dom';
 import Register from './comp/Registration.js'
 import Login from './comp/Login.js'
 import Dashboard from './comp/dashboard.js'
-import RichEditor from './comp/textEditor.js'
+import RichEditor from './comp/textEditor.jsx'
 
 export default class App extends React.Component {
 

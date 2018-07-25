@@ -4,8 +4,7 @@ import session from 'express-session';
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import bodyParser from 'body-parser';
-import socketIO from 'socket.io'
-import {document} from './socket-api/document.js'
+import socketIO from 'socket.io';
 
 const models = require('./models/models');
 
@@ -18,29 +17,28 @@ const MongoStore = require('connect-mongo')(session);
 const mongoose = require('mongoose');
 
 const app = express();
-const server = http.Server(app)
+const server = http.Server(app);
 const io = socketIO(server);
 
-io.on('connection', function (socket) {
-
+io.on('connection', (socket) => {
   socket.on('openDocument', (data, next) => {
-     socket.join(data.docId)
+    socket.join(data.docId);
 
-     Doc.findOne({
-       _id: data.docId,
-     }, (err, doc) => next({err, doc}))
-   })
+    Document.findOne({
+      _id: data.docId,
+    }, (err, doc) => next({ err, doc }));
+  });
 
-   socket.on('syncDocument', (data, next) => {
-     socket.to(data.docId).emit('syncDocument', data)
-   })
+  socket.on('syncDocument', (data, next) => {
+    socket.to(data.docId).emit('syncDocument', data);
+  });
 
-   socket.on('closeDocument', (data, next) => {
+  socket.on('closeDocument', (data, next) => {
      // TODO: think about saving at this point?
-     socket.leave(data.docId)
-     next({err: null})
-   })
-})
+    socket.leave(data.docId);
+    next({ err: null });
+  });
+});
 
 app.use(session({
   secret: process.env.SECRET,
