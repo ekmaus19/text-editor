@@ -10,7 +10,6 @@ import io from 'socket.io-client'
 
 const url = 'http://127.0.0.1:1337';
 // const socket = io(url);
-const socket = io(url);
 
 // const SearchHighlight = props => (
 //   <span className="search-and-replace-highlight">{props.children}</span>
@@ -83,13 +82,15 @@ class RichEditor extends React.Component {
       fontInput: null,
       search: '',
       addUserModal: false,
+      socket: io(url),
     }
     this.updateEditorState = editorState => this.setState({editorState});
     this.getEditorState = () => this.state.editorState;
-    this.onChange = (editorState) => this.setState({editorState});
+    this.onChange = this.onChange.bind(this);
     this.handleKeyCommand = (command) => this._handleKeyCommand(command);
     this.onTab = (e) => this._onTab(e);
     this.picker = colorPickerPlugin(this.updateEditorState, this.getEditorState);
+    this.remoteStateChange = this.remoteStateChange.bind(this);
     //this.handleSaveButton = () => this.handleSaveButton();
   }
 
@@ -97,7 +98,7 @@ class RichEditor extends React.Component {
 
   componentDidMount() {
 
-    socket.emit('openDocument', {docId: this.props.match.params.docId}, (res) => {
+    this.state.socket.emit('openDocument', {docId: this.props.match.params.docId}, (res) => {
       if (res.err) return alert('Error')
       this.setState({
         doc: res.doc,
@@ -109,7 +110,7 @@ class RichEditor extends React.Component {
       })
 
       // start watching the document to sync live edits
-      socket.on('syncDocument', this.remoteStateChange)
+      this.state.socket.on('syncDocument', this.remoteStateChange)
     })
 
     fetch(url + '/dashboard/' + this.props.match.params.docId, {
